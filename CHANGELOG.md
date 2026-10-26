@@ -1,4 +1,6 @@
-## v22.1.3 — 2026-10-26
+# Changelog
+
+Release details: [reporting improvements](RELEASE-v22.2.0.md), [synthesis recovery](RELEASE-v22.1.3.md), [installation fixes](RELEASE-v22.1.2.md), [reference-report alignment](RELEASE-v22.1.1.md), and [research reporting](RELEASE-v22.1.0.md).
 
 ## 22.2.0
 
@@ -7,6 +9,7 @@
 - Save complete Markdown ledgers alongside concise Issue drafts.
 - Resume exact-evidence GLM stages and reject post-snapshot evidence in offline replay.
 
+## v22.1.3 — 2026-10-26
 
 - Recover completed cluster investigations after a timed-out historical synthesis
   using --reuse-investigations and explicit --allow-partial. Validate dated filename,
