@@ -15,6 +15,10 @@ install -d -o "$BOT_USER" -g "$BOT_USER" -m 0700 "$BOT_HOME/reports"
 # Older releases sometimes left this directory owned by root, aborting publish.
 install -d -o "$BOT_USER" -g "$BOT_USER" -m 0700 "$BOT_HOME/reports/issue-backups"
 install -d -o root -g root -m 0700 /etc/sglang-npu-bot
+# New helpers must reach the installed tree; keep explicit CLI modes below.
+for source in "$SOURCE_ROOT"/scripts/*.py; do
+  install -o root -g root -m 0644 "$source" "$BOT_HOME/scripts/$(basename "$source")"
+done
 install -o root -g root -m 0644 "$SOURCE_ROOT/scripts/npu_diffusion_ci_report.py" "$BOT_HOME/scripts/npu_diffusion_ci_report.py"
 install -o root -g root -m 0644 "$SOURCE_ROOT/scripts/log_context.py" "$BOT_HOME/scripts/log_context.py"
 install -o root -g root -m 0644 "$SOURCE_ROOT/scripts/glm_http.py" "$BOT_HOME/scripts/glm_http.py"
@@ -71,11 +75,14 @@ for test_source in "$SOURCE_ROOT"/tests/test_*.py; do
   install -o root -g root -m 0644 "$test_source" "$BOT_HOME/tests/$(basename "$test_source")"
 done
 install -d -o root -g root -m 0755 "$BOT_HOME/tests/fixtures"
-install -o root -g root -m 0644 "$SOURCE_ROOT/tests/fixtures/ascend_diffusion_consistency.log" "$BOT_HOME/tests/fixtures/ascend_diffusion_consistency.log"
+for fixture_source in "$SOURCE_ROOT"/tests/fixtures/*; do
+  install -o root -g root -m 0644 "$fixture_source" "$BOT_HOME/tests/fixtures/$(basename "$fixture_source")"
+done
 install -o root -g root -m 0644 "$SOURCE_ROOT/tests/__init__.py" "$BOT_HOME/tests/__init__.py"
 install -o root -g root -m 0644 "$SOURCE_ROOT/tests/test_npu_network_check.py" "$BOT_HOME/tests/test_npu_network_check.py"
 install -o root -g root -m 0644 "$SOURCE_ROOT/tests/test_nm_dns.py" "$BOT_HOME/tests/test_nm_dns.py"
 install -d -o root -g root -m 0755 "$BOT_HOME/deploy"
+install -o root -g root -m 0644 "$SOURCE_ROOT/deploy/bot.env.example" "$BOT_HOME/deploy/bot.env.example"
 install -o root -g root -m 0755 "$SOURCE_ROOT/deploy/recover-and-run.sh" "$BOT_HOME/deploy/recover-and-run.sh"
 install -o root -g root -m 0755 "$SOURCE_ROOT/deploy/repair-and-run.sh" "$BOT_HOME/deploy/repair-and-run.sh"
 install -o root -g root -m 0755 "$SOURCE_ROOT/deploy/configure-dns.py" "$BOT_HOME/deploy/configure-dns.py"

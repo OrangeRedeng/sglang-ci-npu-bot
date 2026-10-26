@@ -16,6 +16,8 @@ jobs:
           python-version: '3.9'
       - name: Offline unit tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Installed tree tests
+        run: python -m tests.test_installation --installed-suite
       - name: Shell syntax
         run: bash -n deploy/*.sh scripts/*.sh
       - name: Version format

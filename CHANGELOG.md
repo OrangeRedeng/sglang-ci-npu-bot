@@ -1,5 +1,12 @@
 # Changelog
 
+## 22.2.2
+
+- Install every Python helper so installed reports and tests can import the
+  same modules as the source checkout. Existing CLI permissions are preserved.
+- Run the full suite from an installed tree in CI, including checks that
+  updates preserve configuration and saved reports.
+
 ## 22.2.1
 
 - Reports now finish rendering when an investigation includes PR links. Previously,

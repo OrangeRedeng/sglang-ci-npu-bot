@@ -97,7 +97,8 @@ python3 scripts/preview_report.py \
 
 ## Tests and current limits
 
-The offline suite passes 258 tests, including recovery after a report-rendering
+The offline suite passes 260 tests in both the source and installed trees,
+including recovery after a report-rendering
 crash without another GLM request. Collection has limits: the bot does not yet
 read artifact contents or compare every observed testcase with a complete
 expected inventory. See the [verification notes](docs/VERIFICATION.md).

@@ -2,8 +2,12 @@
 
 ## Current source checks
 
-The offline suite passes 258 tests. Tests run in an isolated working directory
-and cover the production crash supplied on October 26, saved-synthesis recovery,
+The offline suite passes 260 tests in both the source and installed trees.
+The installer runs in a temporary fixture with account and service operations
+stubbed; actual file copies, module imports, permissions, and preservation of
+configuration and reports are checked. The full suite then runs from that
+installed tree in an isolated working directory.
+Tests cover the production crash supplied on October 26, saved-synthesis recovery,
 metric isolation, history, cache identity, and snapshot cutoffs. These checks do
 not establish live GLM quality or deployment on the reporting host.
 
