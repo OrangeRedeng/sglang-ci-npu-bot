@@ -1,5 +1,12 @@
 # Changelog
 
+## 22.2.5
+
+- Accept GitHub log timestamps with seven fractional digits on Python 3.9.
+- Preserve sub-microsecond snapshot cutoffs and source line numbers during
+  historical reparsing and offline replay.
+
+
 ## 22.2.4
 
 - Put main partition results first, with readable model names and status icons.

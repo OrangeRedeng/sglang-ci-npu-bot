@@ -2,38 +2,30 @@
 """Offline report replay. No GitHub client, publication, closure, or GLM calls."""
 import argparse
 from collections import Counter
-from datetime import datetime
 import json
 from pathlib import Path
 import re
-import tempfile
 from zoneinfo import ZoneInfo
 try:
-    from scripts.collection_evidence import attach_observations
+    from scripts.collection_evidence import attach_observations, observed_log
     from scripts.complete_report import render_complete_report, validate_report
     from scripts.log_context import analyze_file
-    from scripts.npu_diffusion_ci_report import clusters_from_snapshot, render_report
+    from scripts.npu_diffusion_ci_report import clusters_from_snapshot, render_report, parse_timestamp
 except ImportError:
-    from collection_evidence import attach_observations
+    from collection_evidence import attach_observations, observed_log
     from complete_report import render_complete_report, validate_report
     from log_context import analyze_file
-    from npu_diffusion_ci_report import clusters_from_snapshot, render_report
+    from npu_diffusion_ci_report import clusters_from_snapshot, render_report, parse_timestamp
 
 
 def replay(data,logs,output):
-    now=datetime.fromisoformat(data['generated_utc'].replace('Z','+00:00'))
+    now=parse_timestamp(data['generated_utc'])
     known={str(j['job_id']):j for j in data.get('jobs',[])+data.get('comparison_jobs',[]) if j.get('job_id')}
     for jid,path in logs.items():
         if jid not in known:raise ValueError('Log job ID absent from selected snapshot: '+jid)
         job=known[jid]
-        with tempfile.TemporaryDirectory(prefix='npu-ci-replay-') as d:
-            bounded=Path(d)/'observed.log';dropped=0
-            with Path(path).open(encoding='utf-8-sig',errors='replace') as src,bounded.open('w',encoding='utf-8') as dst:
-                for line in src:
-                    ts=re.match(r'^(\d{4}-\d{2}-\d{2}T[0-9:.]+Z)',line)
-                    if ts and datetime.fromisoformat(ts[1].replace('Z','+00:00'))>now:
-                        dropped+=1;continue
-                    dst.write(line)
+        with observed_log(path,data['generated_utc']) as (bounded,cutoff):
+            dropped=cutoff.get('post_snapshot_lines_excluded',0)
             result=analyze_file(bounded)
             job.update(failure_cases=result['failure_cases'],failure_cases_version=2,
                        testcase_accounting=result['testcase_accounting'])

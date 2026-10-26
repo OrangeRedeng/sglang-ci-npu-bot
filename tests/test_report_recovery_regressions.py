@@ -83,7 +83,7 @@ class ProductionReportTests(unittest.TestCase):
         from scripts.reparse_failure_snapshots import reparse
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);logs=root/'2026-10-26';logs.mkdir()
-            (logs/'job-1.log').write_text('2026-10-26T09:00:00Z x.py::test_diffusion_generation[wan]\n2026-10-26T09:01:00Z [server-test] PASSED diffusion testcase: wan\n2026-10-26T11:01:00Z ModuleNotFoundError: future\n')
+            (logs/'job-1.log').write_text('2026-10-26T09:00:00.4191274Z x.py::test_diffusion_generation[wan]\n2026-10-26T09:01:00.1Z [server-test] PASSED diffusion testcase: wan\n2026-10-26T10:00:00.0000001Z ModuleNotFoundError: future\n')
             data={'generated_utc':'2026-10-26T10:00:00Z','jobs':[{'job_id':1,'conclusion':'success'}]}
             stats=reparse(data,root)
         self.assertEqual(stats['reparsed_jobs'],1)
@@ -176,5 +176,37 @@ class SavedSynthesisTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError,'changed concurrently'):recover(root,self.date,True,gh=gh)
             gh.issue.assert_not_called();gh.create_issue.assert_not_called()
 
+
+class TimestampCompatibilityRegression(unittest.TestCase):
+    def test_fractional_precision_and_timezone_cutoffs(self):
+        from scripts.ci_timestamps import parse_timestamp,timestamp_key
+        from datetime import datetime
+        from scripts.collection_evidence import observed_log
+        for digits in ('1','41','419','4191','41912','419127','4191274','419127400'):
+            stamp='2026-10-25T09:49:14.'+digits+'Z'
+            expected=datetime.fromisoformat('2026-10-25T09:49:14.'+(digits+'000000')[:6]+'+00:00')
+            self.assertEqual(parse_timestamp(stamp),expected)
+        # Reproduce Python 3.9's parser restriction even on newer test hosts.
+        def legacy_parse(value):
+            import re
+            fraction=re.search(r'T\d{2}:\d{2}:\d{2}\.(\d+)',value)
+            if fraction and len(fraction[1]) not in (3,6):
+                raise ValueError('Python 3.9 rejects this precision')
+            return datetime.fromisoformat(value)
+        with patch('scripts.ci_timestamps.datetime') as legacy:
+            legacy.fromisoformat.side_effect=legacy_parse
+            self.assertEqual(parse_timestamp('2026-10-25T09:49:14.4191274Z').microsecond,419127)
+            self.assertEqual(parse_timestamp('2026-10-25T09:49:14.1Z').microsecond,100000)
+        self.assertEqual(timestamp_key('2026-10-25T12:49:14.419127400+03:00'),
+                         timestamp_key('2026-10-25T09:49:14.4191274Z'))
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'job.log'
+            path.write_text('2026-10-25T09:49:14.4191274Z keep\n'
+                            '2026-10-25T09:49:14.4191275Z future\n'
+                            'untimestamped context\n')
+            with observed_log(path,'2026-10-25T09:49:14.4191274Z') as (bounded,accounting):
+                self.assertEqual(bounded.read_text().splitlines(),[
+                    '2026-10-25T09:49:14.4191274Z keep','','untimestamped context'])
+                self.assertEqual(accounting['post_snapshot_lines_excluded'],1)
 
 if __name__=='__main__':unittest.main()

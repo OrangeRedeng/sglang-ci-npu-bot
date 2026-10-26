@@ -55,7 +55,11 @@ def utc_now() -> datetime:
 
 
 def parse_timestamp(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    try:
+        from scripts.ci_timestamps import parse_timestamp as parse
+    except ImportError:
+        from ci_timestamps import parse_timestamp as parse
+    return parse(value)
 
 
 def sanitize(text: str) -> str:
