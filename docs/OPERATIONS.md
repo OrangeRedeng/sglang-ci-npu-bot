@@ -42,7 +42,7 @@ stopping it midway through paid analysis.
 The following block:
 
 1. Pauses the timer and checks that no reporting process is active.
-2. Fetches the `fix/report-recovery` branch and installs that exact fetched commit.
+2. Fetches the `main` branch and installs that exact fetched commit.
 3. Reparses retained failure logs into local snapshots, with backups.
 4. Updates yesterday's existing daily Issue using its saved snapshot and a new
    GLM analysis.
@@ -91,7 +91,7 @@ if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
   echo 'The source checkout has local changes; preserve them before updating.' >&2
   exit 1
 fi
-git fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git fix/report-recovery
+git fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
 git checkout --detach FETCH_HEAD
 bash deploy/update-from-git.sh --install --defer-timer
 

@@ -26,8 +26,6 @@ in the [recovery contract](docs/TESTCASE_PASS_VERIFICATION.md).
 
 ## Install and configure
 
-The reporting fixes are on the `fix/report-recovery` branch.
-
 Run the bot on an openEuler host with Python 3.9 or newer, Git, systemd,
 and access to the GitHub API. It reads results from the CI runners, so the
 reporting host does not need an NPU.
@@ -37,7 +35,7 @@ If `/opt/npu-diffusion-ci-kit` already exists, use the
 uses the current source checkout; `--install` does not fetch new code.
 
 ```bash
-sudo git clone --branch fix/report-recovery https://github.com/OrangeRedeng/sglang-ci-npu-bot.git /opt/npu-diffusion-ci-kit
+sudo git clone https://github.com/OrangeRedeng/sglang-ci-npu-bot.git /opt/npu-diffusion-ci-kit
 cd /opt/npu-diffusion-ci-kit
 sudo bash deploy/update-from-git.sh --install
 sudoedit /etc/sglang-npu-bot/bot.env
