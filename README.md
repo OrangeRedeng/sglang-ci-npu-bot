@@ -36,11 +36,15 @@ Use `--main` to fetch and install the current code. `--install` installs only
 the checkout already on disk.
 
 ```bash
-sudo git clone https://github.com/OrangeRedeng/sglang-ci-npu-bot.git /opt/npu-diffusion-ci-kit
+sudo git clone https://gh-proxy.test.osinfra.cn/https://github.com/OrangeRedeng/sglang-ci-npu-bot.git /opt/npu-diffusion-ci-kit
 cd /opt/npu-diffusion-ci-kit
 sudo bash deploy/update-from-git.sh --main
 sudoedit /etc/sglang-npu-bot/bot.env
 ```
+
+Git transfers use `https://gh-proxy.test.osinfra.cn/`. The updater also saves a
+checkout-local URL rewrite so later `git fetch`, `git pull`, and `git push`
+commands use the proxy. GitHub API requests keep their existing configuration.
 
 Installation checks the deployed Python files and imports without contacting
 GitHub or GLM. A temporary GitHub outage does not roll back a code update.

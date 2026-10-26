@@ -27,6 +27,8 @@ git -C "$SRC" rev-parse --is-inside-work-tree 2>/dev/null | grep -qx true || {
  echo 'Not a git checkout. Use a git clone or the distributed .git repository tarball.' >&2; exit 2; }
 [[ -z "$(git -C "$SRC" status --porcelain --untracked-files=normal)" ]] || {
  echo 'Refusing to update a dirty checkout. Commit/stash or remove local modifications.' >&2; exit 2; }
+# Apply the mirror to this checkout only, including origin fetches and pushes.
+git -C "$SRC" config --local url."https://gh-proxy.test.osinfra.cn/https://github.com/".insteadOf https://github.com/
 CURRENT="$(git -C "$SRC" rev-parse HEAD)"
 # A freshly unpacked release checkout can already point to the *new* tag
 # while the installed runtime is older. For rollback history use the actual
@@ -40,7 +42,7 @@ if [[ -r "$STATE/current-revision" ]]; then
   fi
 fi
 if [[ "$MODE" == main ]]; then
-  git -C "$SRC" fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
+  git -C "$SRC" fetch https://gh-proxy.test.osinfra.cn/https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
   MAIN_REVISION="$(git -C "$SRC" rev-parse FETCH_HEAD)"
 fi
 if [[ "$MODE" == check || "$MODE" == update ]]; then

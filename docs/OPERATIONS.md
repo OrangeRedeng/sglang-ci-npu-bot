@@ -13,14 +13,15 @@ Wait for any running report to finish first.
 
 ```bash
 cd /opt/npu-diffusion-ci-kit
-sudo git fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
+sudo git fetch https://gh-proxy.test.osinfra.cn/https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
 sudo git checkout --detach FETCH_HEAD
 sudo bash deploy/update-from-git.sh --main
 ```
 
 Fetching the updater first is necessary when upgrading an older installation
 that does not recognize `--main`. Later updates need only the last command.
-The updater preserves configuration and reports, checks installed modules
+The updater configures the proxy for fetch, pull, and push in this checkout.
+It preserves configuration and reports, checks installed modules
 offline, and restores the timer. It refuses local source changes and active
 reporting processes. Network collection is a separate check:
 
@@ -108,7 +109,7 @@ if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
   echo 'The source checkout has local changes; preserve them before updating.' >&2
   exit 1
 fi
-git fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
+git fetch https://gh-proxy.test.osinfra.cn/https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
 git checkout --detach FETCH_HEAD
 bash deploy/update-from-git.sh --install --defer-timer
 
