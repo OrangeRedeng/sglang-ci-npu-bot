@@ -84,6 +84,11 @@ def refresh(gh,source,data,issues,root,apply=False,use_glm=False,reuse_investiga
         c['pr_leads']=(data.get('pr_evidence') or {}).get(c['fingerprint'],[])
     data['failure_history']=correlate_snapshots(data,clusters,root)
     data['coverage_matrix']=coverage_matrix(data,load_coverage_history(data,root))
+    try:
+        from scripts.ci_investigation import build_regression_context, load_saved_history
+    except ImportError:
+        from ci_investigation import build_regression_context, load_saved_history
+    data['regression_context']=build_regression_context(data,clusters,load_saved_history(data,root/'snapshots'))
     analysis='Historical report rebuilt from retained evidence; no new GLM investigation.'
     status='historical deterministic refresh'
     if reuse_investigations:

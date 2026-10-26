@@ -5,12 +5,44 @@ and the installed bot at `/home/sglang-npu-bot`. Run them on the reporting host.
 The [verification notes](VERIFICATION.md) describe the current implementation
 gaps; updating does not resolve those gaps.
 
+## Recover a report after a renderer failure
+
+If the log says synthesis completed and rendering then failed, preserve the
+saved JSON and `reports/analysis/npu-diffusion-ci-YYYY-MM-DD-full.md`. Do not
+reparse that snapshot before recovery: reparsing changes its evidence identity.
+After installing the fixed code, preview the October 26 report without new
+GLM calls or GitHub writes:
+
+```bash
+sudo systemd-run --wait --pipe --collect \
+  -p User=sglang-ci -p Group=sglang-ci \
+  -p WorkingDirectory=/home/sglang-npu-bot \
+  -p Environment=HOME=/home/sglang-npu-bot \
+  -p EnvironmentFile=/etc/sglang-npu-bot/bot.env \
+  -p UMask=0077 \
+  /usr/bin/python3 scripts/recover_daily_report.py \
+  --date 2026-10-26 --allow-legacy-analysis
+```
+
+Add `--publish` to update the matching daily Issue or create it if the failed
+run never published one. This command makes no model calls and does not create,
+close, or reconcile incident Issues. It writes local reports to `reports/recovered/`.
+Run only after the active analyzer has finished; keep the timer paused during
+publication and restore its previous state afterward. New synthesis files use
+hashes; legacy recovery explicitly discloses its weaker file/date binding.
+
+The logs supplied on October 26 show the installed source was still v22.1.3.
+A failed clone into an existing directory followed by `--install` reinstalled
+that checkout. Fetch and select the fixed source before installing it. The
+active-process refusal is a safety guard: wait for the analyzer rather than
+stopping it midway through paid analysis.
+
 ## Update, refresh yesterday, and collect today
 
 The following block:
 
 1. Pauses the timer and checks that no reporting process is active.
-2. Fetches this repository's main branch and installs that exact fetched commit.
+2. Fetches the `fix/report-recovery` branch and installs that exact fetched commit.
 3. Reparses retained failure logs into local snapshots, with backups.
 4. Updates yesterday's existing daily Issue using its saved snapshot and a new
    GLM analysis.
@@ -59,7 +91,7 @@ if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
   echo 'The source checkout has local changes; preserve them before updating.' >&2
   exit 1
 fi
-git fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
+git fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git fix/report-recovery
 git checkout --detach FETCH_HEAD
 bash deploy/update-from-git.sh --install --defer-timer
 
@@ -75,13 +107,13 @@ run_bot() {
 }
 
 report_yesterday=$(TZ=Europe/Moscow date -d yesterday +%F)
-run_bot scripts/reparse_failure_snapshots.py --apply
+run_bot scripts/reparse_failure_snapshots.py --dates "$report_yesterday" --apply
 run_bot scripts/refresh_daily_snapshots.py --dates "$report_yesterday" --apply --glm
 run_bot scripts/npu_diffusion_ci_report.py --lookback-hours 24
 SH
 ```
 
-Reparsing affects all retained local daily snapshots; it does not publish them.
+Reparsing in this example affects only yesterday's local snapshot; it does not publish it.
 Only the selected historical daily Issue is refreshed by the historical command.
 The current-day collector retains the configured main-incident publication and
 closure policy. This procedure does not run legacy Issue reconciliation.

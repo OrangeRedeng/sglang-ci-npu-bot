@@ -70,7 +70,7 @@ installation and extracted ZIP checks pass. Git bundle restoration verifies the
 release tag. No upstream CI jobs were rerun and no server or GitHub Issues were
 modified during preparation.
 
-Install and run using RELEASE-v22.1.1.md. The existing combined recovery command
+Use docs/OPERATIONS.md for current installation and recovery commands. The existing combined recovery command
 reparses retained logs, refreshes the latest existing daily report, reconciles
 legacy Issues and optionally forces today's analysis. Missing raw logs remain an
 explicit limit and do not justify invented historical corrections.

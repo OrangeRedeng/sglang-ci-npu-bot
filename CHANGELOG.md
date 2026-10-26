@@ -1,6 +1,16 @@
 # Changelog
 
-Release details: [reporting improvements](RELEASE-v22.2.0.md), [synthesis recovery](RELEASE-v22.1.3.md), [installation fixes](RELEASE-v22.1.2.md), [reference-report alignment](RELEASE-v22.1.1.md), and [research reporting](RELEASE-v22.1.0.md).
+## 22.2.1
+
+- Reports now finish rendering when an investigation includes PR links. Previously,
+  the PR-only watchlist could crash after the paid synthesis had completed.
+- A saved completed synthesis can be turned back into a daily report without
+  another GLM request. New saved analyses are checked against their snapshots;
+  older files need explicit recovery approval.
+- Preserve video summary/frame metrics, saved-history greens, full-evidence
+  cache identity, and timestamp cutoffs during collection and reparsing.
+- Pin hosted tests to a runner with a published Python 3.9 build.
+- Clarify updating an existing checkout and recovering a paid report.
 
 ## 22.2.0
 
@@ -89,8 +99,8 @@ Final release for the October 26 P0–P2 audit. Includes all v22.0.2 P0 fixes.
 - Research profile: high effort, two deep investigations, 100 failed-job log cap,
   38-request PR search cap, expandable full GLM report. Financial caps unchanged.
 
-Validation: 213 offline unit tests. Additional package/installation checks are
-recorded in RELEASE-v22.1.0.md. No live upstream replay or deployment implied.
+Validation: 213 offline unit tests, followed by package and installation checks.
+These checks did not include live upstream replay or deployment.
 
 ## v22.0.2 — 2026-10-26
 

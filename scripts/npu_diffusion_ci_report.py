@@ -389,6 +389,8 @@ def snapshot(gh: GitHub, now: datetime, hours: int, max_runs: int, max_logs: int
             run_records.append({k:run.get(k) for k in ('id','html_url','head_sha','head_branch',
                 'event','status','conclusion','created_at','updated_at','run_attempt')})
             run_records[-1].update(workflow=workflow, comparison_only=is_comparison)
+            if run.get('updated_at') and parse_timestamp(run['updated_at'])>now:
+                run_records[-1].update(status='unknown',conclusion=None,snapshot_status_unverified=True)
             jobs = []
             job_lists_attempted += 1
             try:
@@ -423,10 +425,18 @@ def snapshot(gh: GitHub, now: datetime, hours: int, max_runs: int, max_logs: int
                 if not is_comparison: stats[conclusion] += 1
                 test_steps=[{k:s.get(k) for k in ('name','status','conclusion','started_at','completed_at')}
                             for s in job.get('steps',[]) if re.search(r'run.*test|test.*run',s.get('name',''),re.I)]
+                for step in test_steps:
+                    if step.get('started_at') and parse_timestamp(step['started_at'])>now:
+                        step.update(status='queued',conclusion=None,started_at=None,completed_at=None)
+                    elif step.get('completed_at') and parse_timestamp(step['completed_at'])>now:
+                        step.update(status='in_progress',conclusion=None,completed_at=None)
+                run_conclusion=run.get('conclusion')
+                if run.get('updated_at') and parse_timestamp(run['updated_at'])>now:
+                    run_conclusion=None
                 record = {
                     "run_id": run["id"], "attempt": run.get("run_attempt", 1),
                     "workflow": workflow, "job_id": job["id"], "name": job.get("name", ""),
-                    "conclusion": conclusion, "run_conclusion": run.get("conclusion"),
+                    "conclusion": conclusion, "run_conclusion": run_conclusion,
                     "status":status, "test_steps":test_steps, "comparison_only":is_comparison,
                     "evidence_after_snapshot":after_snapshot,
                     "url": job.get("html_url") or f"https://github.com/{SOURCE_REPO}/actions/runs/{run['id']}",
@@ -957,6 +967,11 @@ def glm_analysis(data: dict, clusters: list[dict], mode: str | None = None, gh=N
                 } if continuity else {}),
                 "verified_pr_leads":{c.get("stable_id") or c.get("fingerprint"):c.get("pr_leads",[])
                   for c in clusters[:20]}}
+    full_evidence_sha=hashlib.sha256(json.dumps({
+        'snapshot':data.get('generated_utc'),'jobs':data.get('jobs',[]),
+        'comparison_jobs':data.get('comparison_jobs',[]),'source_evidence':data.get('source_evidence',{}),
+        'clusters':clusters,'historical':historical,'context':context,'pr_context':pr_context,
+        'continuity':continuity},sort_keys=True,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest()
 
     def record_usage(telemetry, info):
         if 'attempt' in info:
@@ -976,7 +991,8 @@ def glm_analysis(data: dict, clusters: list[dict], mode: str | None = None, gh=N
         cache_path = None
         if cache_root and not cli_command:
             import hashlib
-            sig = json.dumps({'prompt_version':3, 'endpoint':base_url, 'model': model, 'messages': messages,
+            sig = json.dumps({'prompt_version':4, 'evidence_sha256':full_evidence_sha,
+                'endpoint':base_url, 'model': model, 'messages': messages,
                 'max_tokens': max_tokens,
                 'reasoning_effort': os.getenv('GLM_REASONING_EFFORT', ''),
                 'output_cap': os.getenv('GLM_MAX_OUTPUT_TOKENS', '')},
@@ -1515,10 +1531,12 @@ def main(argv=None):
                 progress('WARNING: GLM local budget summary unavailable: %s' % type(e).__name__)
         try:
             from scripts.analysis_evidence import coverage_matrix, load_coverage_history
-            from scripts.ci_investigation import load_saved_history
+            from scripts.ci_investigation import load_saved_history, build_regression_context
         except ImportError:
             from analysis_evidence import coverage_matrix, load_coverage_history
-            from ci_investigation import load_saved_history
+            from ci_investigation import load_saved_history, build_regression_context
+        if not data.get('regression_context'):
+            data['regression_context']=build_regression_context(data,clusters+historical,load_saved_history(data))
         data['pr_evidence']={c['fingerprint']:c.get('pr_leads',[]) for c in clusters}
         data['coverage_matrix']=coverage_matrix(data,load_coverage_history(data))
         for evidence_path in [Path('reports') / f'npu-diffusion-ci-{date}.json', saved]:
@@ -1530,8 +1548,11 @@ def main(argv=None):
         full_root.mkdir(parents=True, exist_ok=True, mode=0o700)
         full_root.chmod(0o700)
         full_path = full_root / f'npu-diffusion-ci-{date}-full.md'
-        full_path.write_text(analysis, encoding='utf-8')
-        full_path.chmod(0o600)
+        try:
+            from scripts.analysis_recovery import save_analysis
+        except ImportError:
+            from analysis_recovery import save_analysis
+        save_analysis(full_path,data,analysis,status)
         try:
             from scripts.complete_report import render_complete_report, validate_report
         except ImportError:

@@ -1,51 +1,49 @@
 # Verification notes
 
-Audit date: 2026-10-26. Source audited:
-[`a62d87e`](https://github.com/OrangeRedeng/sglang-ci-npu-bot/commit/a62d87e4b5de9841c702643008bb24dd9f53e332).
-The documentation cleanup does not change this source implementation.
+## Current source checks
 
-## What passed
+The offline suite passes 258 tests. Tests run in an isolated working directory
+and cover the production crash supplied on October 26, saved-synthesis recovery,
+metric isolation, history, cache identity, and snapshot cutoffs. These checks do
+not establish live GLM quality or deployment on the reporting host.
 
-- All 246 offline tests pass in an isolated working directory. The source and
-  extracted ZIP passed the same suite during packaging.
-- The real log from SGLang job `121128243405` now retains the Wan2.1 performance
-  assertion, a final FLUX testcase PASS, repeated execution attempts, and the
-  missing-CUDA import path.
-- Complete local Markdown and concise Issue previews are generated. Published
-  source files were checked against the validated local Git tree.
+The production crash was a local-variable collision in the research renderer:
+a loop over rendered PR links replaced the PR-cluster list with a string.
+Rendering then failed after the paid synthesis had completed. The regression
+now includes both main and PR clusters with verified PR links.
 
-These checks validate bot behavior on retained logs and fixtures. They do not
-establish live GLM quality, production deployment, or NPU runtime correctness.
+## Fixed in this source
 
-## Hosted CI
+- PR-link rendering preserves the PR-cluster list.
+- Testcase summary metrics stay separate from per-frame values.
+- The complete report uses the same saved regression context as GLM.
+- Cache keys include an unbounded-evidence digest before model context reduction.
+- Historical reparsing retains PASS observations and import ownership, respects
+  the frozen snapshot, and can be limited to selected dates.
+- Test-step and parent outcomes completed after the snapshot are not reported
+  as known outcomes at that snapshot.
+- Completed synthesis is saved with snapshot/content hashes. Recovery refuses
+  mismatches and publishes only a selected daily report when requested.
+- Hosted tests use Ubuntu 22.04. The official
+  [Python build manifest](https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json)
+  lists an x64 Python 3.9 build for this runner.
 
-The [initial GitHub Actions run](https://github.com/OrangeRedeng/sglang-ci-npu-bot/actions/runs/40326244964)
-failed before tests ran. `actions/setup-python` could not find Python 3.9 for
-the Ubuntu 26.04 runner selected by `ubuntu-latest`. Python grammar checks on
-the development host do not replace running the suite on Python 3.9.
+The [initial hosted run](https://github.com/OrangeRedeng/sglang-ci-npu-bot/actions/runs/40326244964)
+failed during Python setup on Ubuntu 26.04 before tests ran. The runner change
+requires a new hosted run after publication; local grammar checks do not replace
+running Python 3.9 in CI.
 
-## Remaining implementation gaps
+## Remaining limitations
 
-The reporting plan is **partially implemented**, with these confirmed gaps:
+Artifact listings and SHA-pinned source excerpts are collected, but artifact
+contents and a complete expected testcase inventory are not parsed. Coverage
+remains bounded and must not be presented as an exhaustive daily census.
 
-| Area | Finding | Required follow-up |
-| --- | --- | --- |
-| Accuracy metrics | `parse_observations` overwrites summary metrics with each frame. A video summary with SSIM 0.7 can end up reported as 1.0 when its final frame passes. | Preserve testcase summaries and per-frame values separately. |
-| Historical report registry | GLM receives saved-history green evidence, but the complete report rebuilds its registry without that history. A known earlier testcase PASS becomes unknown in the report. | Render both views from the same retained regression context. |
-| Cache identity | The cache hashes bounded model messages. Changes to evidence omitted by context reduction can leave the cache key unchanged. | Include a digest of the complete relevant evidence before reduction. |
-| Historical reparsing | `reparse_failure_snapshots.py` updates failure cases only. It does not attach the new execution observations, successful testcase records, or import-chain ownership. | Enrich retained jobs through the shared observation parser and preserve the historical cutoff. |
-| Artifacts and configuration | Artifact listings and SHA-pinned source excerpts are retained, but artifact contents and a complete expected testcase inventory are not parsed. | Add bounded content inspection and explicit expected-versus-observed coverage. |
-| Snapshot chronology | A job completed after the frozen snapshot is marked active, but its test-step outcomes are copied without an equivalent timestamp cutoff. | Apply the snapshot cutoff to step and parent outcomes as well. |
+Legacy synthesis files have no snapshot/content binding. Recovery requires
+explicit `--allow-legacy-analysis`, a matching dated filename, and a snapshot
+recording completed synthesis. The report states that exact binding is
+unavailable. Partial or failed synthesis is rejected by this recovery command.
 
-The first three findings were reproduced independently of the existing test
-suite. Passing that suite therefore does not mean the full plan is complete.
-
-## Operational consequences
-
-Historical refresh can recover performance assertions from retained failure
-logs, but it does not yet recover all of the new observation fields. Missing
-or expired evidence remains unknown. Reusing a historical investigation does
-not turn a missing synthesis into a completed analysis.
-
-The existing automatic-closure contract still requires controlled comparable
-testcase evidence. Ordinary pytest PASS observations do not satisfy it.
+Ordinary pytest PASS observations do not satisfy the controlled configuration
+and repeated-run evidence required for automatic incident closure. Daily report
+recovery performs no incident creation or closure and makes no model calls.

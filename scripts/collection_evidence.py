@@ -1,8 +1,30 @@
 """Bounded read-only source evidence, independent of model availability."""
 from __future__ import annotations
 import base64
-from datetime import timedelta
+from contextlib import contextmanager
+from datetime import datetime, timedelta
+from pathlib import Path
+import re
+import tempfile
 from urllib.parse import quote
+
+
+@contextmanager
+def observed_log(path, generated_utc):
+    """Keep original line numbers while excluding post-snapshot log content."""
+    if not generated_utc:
+        yield Path(path),{'snapshot_cutoff':'unknown'}
+        return
+    cutoff=datetime.fromisoformat(generated_utc.replace('Z','+00:00'))
+    with tempfile.TemporaryDirectory(prefix='npu-ci-observed-') as directory:
+        output=Path(directory)/'observed.log';dropped=0
+        with Path(path).open(encoding='utf-8-sig',errors='replace') as src,output.open('w',encoding='utf-8') as dst:
+            for line in src:
+                stamp=re.match(r'^(\d{4}-\d{2}-\d{2}T[0-9:.]+Z)',line)
+                if stamp and datetime.fromisoformat(stamp[1].replace('Z','+00:00'))>cutoff:
+                    dropped+=1;dst.write('\n')
+                else:dst.write(line)
+        yield output,{'snapshot_cutoff':generated_utc,'post_snapshot_lines_excluded':dropped}
 
 
 def main_runs(gh, repo, now):

@@ -22,7 +22,7 @@ def case_name(node):
 
 
 def parse_observations(path, limit=4096):
-    observations=[]; active=None; rows=[]; exceptions=[]; metrics={}; checks=[]
+    observations=[]; active=None; rows=[]; exceptions=[]; metrics={}; checks=[]; frames=[]
     performance=[]; overflow=0; unowned=[]; seen_measurements=set(); configuration=[]
 
     def retain_measurements():
@@ -36,7 +36,8 @@ def parse_observations(path, limit=4096):
         if active is None:return
         retain_measurements()
         active.update(status=status, end_line=line, performance=list(performance),
-                      metrics=dict(metrics), checks=list(checks), exception_chain=list(exceptions))
+                      metrics=dict(metrics), frame_metrics=list(frames),
+                      checks=list(checks), exception_chain=list(exceptions))
         root=diagnostic([x['text'] for x in exceptions])
         # Only a concrete import failure with its module path supports a shared-cause link.
         imports=[x for x in exceptions if re.search(r'\b(?:ModuleNotFoundError|ImportError):',x['text'])]
@@ -47,7 +48,7 @@ def parse_observations(path, limit=4096):
         observations.append(active); active=None
 
     def begin(node, lineno):
-        nonlocal active, rows, exceptions, metrics, checks, performance, overflow, seen_measurements
+        nonlocal active, rows, exceptions, metrics, checks, performance, overflow, seen_measurements, frames
         if active and active['nodeid']==node:return
         finish(line=lineno-1)
         if len(observations)>=limit:overflow+=1; return
@@ -55,7 +56,7 @@ def parse_observations(path, limit=4096):
         active={'testcase':name,'nodeid':node,'start_line':lineno,
                 'execution_attempt':1+sum(x['testcase']==name for x in observations),
                 'evidence_source':'execution_log'}
-        rows=[]; exceptions=[]; metrics={}; checks=[]; performance=[]; seen_measurements=set()
+        rows=[]; exceptions=[]; metrics={}; checks=[]; performance=[]; seen_measurements=set(); frames=[]
 
     with path.open(encoding='utf-8-sig', errors='replace') as source:
         for lineno,raw in enumerate(source,1):
@@ -97,9 +98,20 @@ def parse_observations(path, limit=4096):
                 rows.append(line)
                 if len(rows)>=160:retain_measurements(); rows=rows[-40:]
                 # Frame values stay distinct from a final testcase verdict.
-                for m in METRIC.finditer(line):
-                    value=m[2].lower()
-                    metrics[m[1].lower()] = value if 'inf' in value else float(value)
+                values={m[1].lower():(m[2].lower() if 'inf' in m[2].lower() else float(m[2]))
+                        for m in METRIC.finditer(line)}
+                frame=re.search(r'\b(?:Frame\s+(\d+)|f(\d+))\b',line,re.I)
+                if values and frame:
+                    if len(frames)<128:
+                        frames.append({'frame':int(frame[1] or frame[2]),'line':lineno,'metrics':values})
+                    else:overflow+=1
+                    if active.get('metrics_source')!='testcase summary':
+                        active['metrics_source']='derived worst frame'
+                        for key,value in values.items():
+                            if key not in metrics or ((float(value)>float(metrics[key])) if key=='mean_abs_diff'
+                                                      else (float(value)<float(metrics[key]))):metrics[key]=value
+                elif values and re.search(r'\bMetrics\s*:',line,re.I):
+                    metrics.clear();metrics.update(values);active['metrics_source']='testcase summary'
                 # Successful tests print a named performance block before validation.
                 if '--- Performance Log:' in line:
                     active['performance_block']=True

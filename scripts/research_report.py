@@ -205,7 +205,7 @@ def render_research_report(data,clusters,analysis,glm_status,history=None,contin
         action,acceptance=experiment_plan(c)
         lines.append('- **Experiment:** '+action)
         lines.append('- **Acceptance:** '+acceptance)
-        for pr in _linked_prs(c,limit=4):lines.append('- **PR lead:** '+pr)
+        for pr_link in _linked_prs(c,limit=4):lines.append('- **PR lead:** '+pr_link)
         lines.append('')
     lines+=['## PR-only watchlist (no standalone Issues)','',
             '| Testcase / scenario | Failure type | Observations | Tested PRs (not causes) | Evidence |',

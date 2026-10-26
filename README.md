@@ -1,15 +1,14 @@
 # SGLang NPU Diffusion CI Bot
 
-Daily CI reports for SGLang diffusion models running on Huawei Ascend NPUs.
+A daily check on SGLang diffusion tests running on Huawei Ascend NPUs.
+The report shows which tests failed, how their speed and image quality changed,
+and whether earlier problems have returned. Links lead back to the CI jobs and
+logs behind each finding.
 
-The bot reads GitHub Actions results, collects testcase metrics and error logs,
-and turns them into a report of what failed, what recovered, and what needs
-investigation. Optional GLM analysis adds hypotheses and proposed checks tied
-to the collected evidence.
-
-It saves a complete English Markdown report locally and publishes a shorter
-summary to GitHub Issues. Separate incident Issues track confirmed main-branch
-failures; PR-only failures appear in the daily watchlist.
+The bot saves a full Markdown report and posts a shorter summary to GitHub
+Issues. Optional GLM analysis helps investigate failures and suggests what to
+check next. Problems seen on main can have their own incident Issues; PR-only
+failures stay in the daily watchlist.
 
 ## What the report includes
 
@@ -27,12 +26,18 @@ in the [recovery contract](docs/TESTCASE_PASS_VERIFICATION.md).
 
 ## Install and configure
 
-The deployment scripts support an openEuler host with Python 3.9 or newer,
-Git, systemd, and access to the GitHub API. The reporting host does not need
-an NPU: it reads results from the CI runners.
+The reporting fixes are on the `fix/report-recovery` branch.
+
+Run the bot on an openEuler host with Python 3.9 or newer, Git, systemd,
+and access to the GitHub API. It reads results from the CI runners, so the
+reporting host does not need an NPU.
+
+If `/opt/npu-diffusion-ci-kit` already exists, use the
+[update procedure](docs/OPERATIONS.md) instead of cloning again. The installer
+uses the current source checkout; `--install` does not fetch new code.
 
 ```bash
-sudo git clone https://github.com/OrangeRedeng/sglang-ci-npu-bot.git /opt/npu-diffusion-ci-kit
+sudo git clone --branch fix/report-recovery https://github.com/OrangeRedeng/sglang-ci-npu-bot.git /opt/npu-diffusion-ci-kit
 cd /opt/npu-diffusion-ci-kit
 sudo bash deploy/update-from-git.sh --install
 sudoedit /etc/sglang-npu-bot/bot.env
@@ -92,13 +97,12 @@ python3 scripts/preview_report.py \
   --output /path/to/preview
 ```
 
-## Verification and limitations
+## Tests and current limits
 
-The offline suite passes 246 tests. The audit also found remaining gaps in
-metric aggregation, historical evidence, and cache identity; the published
-GitHub workflow failed during Python setup before tests ran. Read the
-[verification notes](docs/VERIFICATION.md) before treating this implementation
-as fully complete.
+The offline suite passes 258 tests, including recovery after a report-rendering
+crash without another GLM request. Collection has limits: the bot does not yet
+read artifact contents or compare every observed testcase with a complete
+expected inventory. See the [verification notes](docs/VERIFICATION.md).
 
 Run the offline suite from the source checkout:
 
@@ -109,6 +113,5 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 ## Project history
 
 The current version is recorded in [VERSION](VERSION).
-[CHANGELOG.md](CHANGELOG.md) contains release history and links to older
-release-specific documentation. Historical commands are not the current
-installation procedure.
+[CHANGELOG.md](CHANGELOG.md) keeps the version history. Use the operations guide
+above for current installation and recovery commands.

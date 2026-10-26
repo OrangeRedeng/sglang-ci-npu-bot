@@ -160,11 +160,14 @@ def render_complete_report(data,clusters,analysis,glm_status,history=None,contin
                          '. This links the import path; a co-occurring latency failure still requires a controlled causal check.')
     if analysis:lines+=['',render_full_analysis(analysis,investigation_clusters,100000)]
     lines+=['','## 7. Incident history and verification','']
-    context=build_regression_context(data,investigation_clusters)
+    context=data.get('regression_context') or build_regression_context(data,investigation_clusters)
+    known_context={x['cluster']:x for x in context.get('clusters',[]) if x.get('cluster')}
     lines.append(table(['ID','First / last observed','Prior testcase PASS','First observed testcase FAIL','Closure evidence'],[
         [cell(c.get('stable_id') or 'OBS-'+c['fingerprint']),cell(c.get('first_seen_snapshot'))+' / '+cell(c.get('last_seen_snapshot')),
          boundary_text(ctx.get('last_verified_green_testcase')),boundary_text(ctx.get('first_verified_bad_testcase')),
-         'not established by ordinary log verdicts'] for c,ctx in zip(investigation_clusters,context['clusters'])]))
+         'not established by ordinary log verdicts'] for c in investigation_clusters
+        for ctx in [next((known_context[k] for k in (c.get('stable_id'),c.get('analysis_ref'),c.get('fingerprint'),'OBS-'+c['fingerprint'])
+                          if k in known_context),{})]]))
     lines.append('Lifecycle: '+cell(continuity or data.get('failure_history') or 'unavailable; missing observations are not verified recovery'))
     lines+=['','## 8. Relevant PRs, commits, and source configuration','']
     prs=[]
