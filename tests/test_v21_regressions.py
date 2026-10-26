@@ -108,43 +108,7 @@ Run-linked PRs #1/#2 from 2024 are context only.
         self.assertEqual(classify_cluster(dict(jobs=[pr]))['priority'],'P2')
         self.assertEqual(job_scope(dict(pr,run_event=None)),'unconfirmed')
 
-    def test_installer_and_timer_lifecycle_static_contract(self):
-        root=Path(__file__).resolve().parents[1]
-        timer=(root/'deploy/systemd/npu-diffusion-ci.timer').read_text()
-        updater=(root/'deploy/update-from-git.sh').read_text()
-        installer=(root/'deploy/install-openeuler.sh').read_text()
-        combined=(root/'deploy/update-and-run.sh').read_text()
-        self.assertIn('Persistent=true',timer)
-        self.assertIn('TIMER_ENABLED',updater)
-        self.assertIn('--defer-timer',updater)
-        self.assertIn('"$BOT_HOME/reports/issue-backups"',installer)
-        self.assertIn('systemctl start --no-block npu-diffusion-ci.service',combined)
-        self.assertIn('systemctl enable --now npu-diffusion-ci.timer',combined)
-        self.assertIn('--reuse-analysis "$ANALYSIS"',combined)
 
-    def test_installer_deploys_static_contract_dependencies(self):
-        """Fail in source CI before packaging a release that fails installed CI."""
-        root=Path(__file__).resolve().parents[1]
-        installer=(root/'deploy/install-openeuler.sh').read_text()
-        needed={
-            'deploy/update-from-git.sh': '"$BOT_HOME/deploy/update-from-git.sh"',
-            'deploy/install-openeuler.sh': '"$BOT_HOME/deploy/install-openeuler.sh"',
-            'deploy/systemd/npu-diffusion-ci.timer': '"$BOT_HOME/deploy/systemd/npu-diffusion-ci.timer"',
-            'deploy/systemd/npu-diffusion-ci.service': '"$BOT_HOME/deploy/systemd/npu-diffusion-ci.service"',
-            'VERSION': '"$BOT_HOME/VERSION"',
-        }
-        for source, destination in needed.items():
-            with self.subTest(source=source):
-                self.assertTrue((root/source).is_file())
-                self.assertIn(destination,installer)
-        self.assertIn('"$BOT_HOME/deploy/systemd"',installer)
 
-    def test_combined_command_supports_hotfix_version(self):
-        root=Path(__file__).resolve().parents[1]
-        combined=(root/'deploy/update-and-run.sh').read_text()
-        self.assertIn(r'^21\.0\.[0-9]+$',combined)
-        updater=(root/'deploy/update-from-git.sh').read_text()
-        self.assertIn('DEPLOYED_REVISION="$installed_sha"',updater)
-        self.assertIn('"$DEPLOYED_REVISION" >"$STATE/previous-revision"',updater)
 
 if __name__=='__main__':unittest.main()

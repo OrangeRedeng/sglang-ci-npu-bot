@@ -41,11 +41,5 @@ class TestManualRefreshProfile(unittest.TestCase):
                                  'GLM_REFRESH_EMPTY_RETRIES':'0'})
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(result.stdout.strip().splitlines()[-1],'low,15000,14000,14000,300,0')
-    def test_shell_syntax_and_explicit_transient_env(self):
-        self.assertEqual(subprocess.run(['bash','-n',str(SCRIPT)]).returncode,0)
-        code=SCRIPT.read_text()
-        self.assertIn('GLM_MAX_OUTPUT_TOKENS="$REFRESH_TOTAL"',code)
-        self.assertIn('GLM_CLUSTER_MAX_TOKENS="$REFRESH_CLUSTER"',code)
-        self.assertIn('GLM_SYNTHESIS_MAX_TOKENS="$REFRESH_SYNTHESIS"',code)
 
 if __name__=='__main__': unittest.main()

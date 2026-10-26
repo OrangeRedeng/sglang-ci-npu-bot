@@ -31,15 +31,19 @@ and access to the GitHub API. It reads results from the CI runners, so the
 reporting host does not need an NPU.
 
 If `/opt/npu-diffusion-ci-kit` already exists, use the
-[update procedure](docs/OPERATIONS.md) instead of cloning again. The installer
-uses the current source checkout; `--install` does not fetch new code.
+[update procedure](docs/OPERATIONS.md) instead of cloning again.
+Use `--main` to fetch and install the current code. `--install` installs only
+the checkout already on disk.
 
 ```bash
 sudo git clone https://github.com/OrangeRedeng/sglang-ci-npu-bot.git /opt/npu-diffusion-ci-kit
 cd /opt/npu-diffusion-ci-kit
-sudo bash deploy/update-from-git.sh --install
+sudo bash deploy/update-from-git.sh --main
 sudoedit /etc/sglang-npu-bot/bot.env
 ```
+
+Installation checks the deployed Python files and imports without contacting
+GitHub or GLM. A temporary GitHub outage does not roll back a code update.
 
 Set `GITHUB_TOKEN` and `TARGET_REPOSITORY` for the repository that will receive
 reports. `SOURCE_REPOSITORY` selects the CI source, normally
@@ -97,9 +101,12 @@ python3 scripts/preview_report.py \
 
 ## Tests and current limits
 
-The offline suite passes 260 tests in both the source and installed trees,
-including recovery after a report-rendering
-crash without another GLM request. Collection has limits: the bot does not yet
+Development tests run once in CI, including an actual temporary installation
+and update, report recovery, parsing, incident safety, and spending limits.
+Server updates run only deployment checks. Run the development suite locally
+with `python3 -m unittest discover -s tests -q`.
+
+Collection has limits: the bot does not yet
 read artifact contents or compare every observed testcase with a complete
 expected inventory. See the [verification notes](docs/VERIFICATION.md).
 

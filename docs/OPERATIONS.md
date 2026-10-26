@@ -5,6 +5,29 @@ and the installed bot at `/home/sglang-npu-bot`. Run them on the reporting host.
 The [verification notes](VERIFICATION.md) describe the current implementation
 gaps; updating does not resolve those gaps.
 
+## Update code only
+
+Run this from the existing source checkout. It works with a detached checkout
+and fetches this repository explicitly, even if an older `origin` points elsewhere.
+Wait for any running report to finish first.
+
+```bash
+cd /opt/npu-diffusion-ci-kit
+sudo git fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
+sudo git checkout --detach FETCH_HEAD
+sudo bash deploy/update-from-git.sh --main
+```
+
+Fetching the updater first is necessary when upgrading an older installation
+that does not recognize `--main`. Later updates need only the last command.
+The updater preserves configuration and reports, checks installed modules
+offline, and restores the timer. It refuses local source changes and active
+reporting processes. Network collection is a separate check:
+
+```bash
+sudo bash /home/sglang-npu-bot/deploy/run-smoke-test.sh
+```
+
 ## Recover a report after a renderer failure
 
 If the log says synthesis completed and rendering then failed, preserve the
@@ -30,12 +53,6 @@ close, or reconcile incident Issues. It writes local reports to `reports/recover
 Run only after the active analyzer has finished; keep the timer paused during
 publication and restore its previous state afterward. New synthesis files use
 hashes; legacy recovery explicitly discloses its weaker file/date binding.
-
-The logs supplied on October 26 show the installed source was still v22.1.3.
-A failed clone into an existing directory followed by `--install` reinstalled
-that checkout. Fetch and select the fixed source before installing it. The
-active-process refusal is a safety guard: wait for the analyzer rather than
-stopping it midway through paid analysis.
 
 ## Update, refresh yesterday, and collect today
 

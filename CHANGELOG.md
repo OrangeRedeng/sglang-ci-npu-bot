@@ -1,5 +1,15 @@
 # Changelog
 
+## 22.2.3
+
+- Fix temporary installer tests when run from the deployed bot directory.
+- Replace server-side development tests and network preflight with offline
+  deployment checks; keep behavioral regression coverage in CI.
+- Remove four redundant source-string tests and the second full CI test run.
+- Add `--main` updates and simplify installation instructions.
+- Preserve VERSION in rollback backups and guard additional reporting processes.
+- Always verify a full deployment, including when its commit already matches.
+
 ## 22.2.2
 
 - Install every Python helper so installed reports and tests can import the

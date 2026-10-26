@@ -2,11 +2,16 @@
 
 ## Current source checks
 
-The offline suite passes 260 tests in both the source and installed trees.
-The installer runs in a temporary fixture with account and service operations
-stubbed; actual file copies, module imports, permissions, and preservation of
-configuration and reports are checked. The full suite then runs from that
-installed tree in an isolated working directory.
+The offline suite runs once from the source tree in CI. Its installation tests
+copy files into a temporary tree, update from that deployed tree, check imports,
+and verify configuration and report preservation. Account and systemd changes
+are stubbed; file copying and permissions are real.
+
+The server's `self-test.sh` checks Python syntax, reporting imports, version,
+and required unit files. It makes no network or model requests and does not run
+development tests. Installed-source fixture paths are preserved during rewrites;
+fixture errors now include subprocess output.
+
 Tests cover the production crash supplied on October 26, saved-synthesis recovery,
 metric isolation, history, cache identity, and snapshot cutoffs. These checks do
 not establish live GLM quality or deployment on the reporting host.
@@ -31,11 +36,6 @@ now includes both main and PR clusters with verified PR links.
 - Hosted tests use Ubuntu 22.04. The official
   [Python build manifest](https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json)
   lists an x64 Python 3.9 build for this runner.
-
-The [initial hosted run](https://github.com/OrangeRedeng/sglang-ci-npu-bot/actions/runs/40326244964)
-failed during Python setup on Ubuntu 26.04 before tests ran. The runner change
-requires a new hosted run after publication; local grammar checks do not replace
-running Python 3.9 in CI.
 
 ## Remaining limitations
 

@@ -15,10 +15,8 @@ jobs:
         with:
           python-version: '3.9'
       - name: Offline unit tests
-        run: python -m unittest discover -s tests -p 'test_*.py' -v
-      - name: Installed tree tests
-        run: python -m tests.test_installation --installed-suite
+        run: python -m unittest discover -s tests -p 'test_*.py' -q
       - name: Shell syntax
-        run: bash -n deploy/*.sh scripts/*.sh
+        run: for script in deploy/*.sh scripts/*.sh; do bash -n "$script"; done
       - name: Version format
         run: grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' VERSION

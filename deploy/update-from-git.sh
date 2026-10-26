@@ -11,9 +11,10 @@ case "${1:-}" in
   --check) MODE=check; shift ;;
   --to) MODE=update; TARGET="${2:-}"; shift 2 ;;
   --latest) MODE=update; TARGET=latest; shift ;;
+  --main) MODE=main; shift ;;
   --install|'') MODE=install; [[ $# -eq 0 ]] || shift ;;
   --rollback) MODE=rollback; shift ;;
-  *) echo 'Usage: sudo bash deploy/update-from-git.sh [--install|--check|--latest|--to vX.Y.Z|--rollback]' >&2; exit 2 ;;
+  *) echo 'Usage: sudo bash deploy/update-from-git.sh [--main|--install|--check|--latest|--to vX.Y.Z|--rollback]' >&2; exit 2 ;;
 esac
 DEFER_TIMER=0
 if [[ "${1:-}" == --defer-timer ]]; then
@@ -38,6 +39,10 @@ if [[ -r "$STATE/current-revision" ]]; then
     DEPLOYED_REVISION="$installed_sha"
   fi
 fi
+if [[ "$MODE" == main ]]; then
+  git -C "$SRC" fetch https://github.com/OrangeRedeng/sglang-ci-npu-bot.git main
+  MAIN_REVISION="$(git -C "$SRC" rev-parse FETCH_HEAD)"
+fi
 if [[ "$MODE" == check || "$MODE" == update ]]; then
   git -C "$SRC" remote get-url origin >/dev/null || {
     echo 'No origin remote. Add your published kit repository as origin before --check/--latest.' >&2; exit 2; }
@@ -56,7 +61,9 @@ if [[ "$MODE" == check ]]; then
   echo "Latest release: $TARGET ($(git -C "$SRC" rev-parse "refs/tags/$TARGET^{commit}"))"
   exit 0
 fi
-if [[ "$MODE" == update ]]; then
+if [[ "$MODE" == main ]]; then
+  NEXT="$MAIN_REVISION"
+elif [[ "$MODE" == update ]]; then
   [[ "$TARGET" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Require immutable semantic version tag vX.Y.Z.' >&2; exit 2; }
   NEXT="$(git -C "$SRC" rev-parse --verify "refs/tags/$TARGET^{commit}")"
 elif [[ "$MODE" == rollback ]]; then
@@ -81,30 +88,14 @@ if [[ "$CURRENT" == "$NEXT" && "$MODE" == rollback ]]; then
   echo 'Restored the installed-code backup made before first Git installation.'
   exit 0
 fi
-if [[ "$CURRENT" == "$NEXT" && "$MODE" != install ]]; then
-  # A fresh clone can point at the exact requested tag while the actual
-  # runtime is still v15 or missing. Do not silently skip first install.
-  if [[ -r "$STATE/current-revision" ]] &&
-     [[ "$(cat "$STATE/current-revision")" == "$NEXT" ]] &&
-     [[ -r "$BOT_HOME/scripts/npu_diffusion_ci_report.py" ]] &&
-     cmp -s "$SRC/scripts/npu_diffusion_ci_report.py" "$BOT_HOME/scripts/npu_diffusion_ci_report.py"; then
-    # An older updater could leave an enabled timer inactive even though
-    # deployed code and Git SHA were already current.
-    if systemctl is-enabled --quiet npu-diffusion-ci.timer &&
-       ! systemctl is-active --quiet npu-diffusion-ci.timer; then
-      systemctl enable --now npu-diffusion-ci.timer
-    fi
-    echo 'Already at requested release; installed code matches.'; exit 0
-  fi
-  echo 'Git HEAD already equals target, but runtime is missing/older: installing.'
-fi
-if pgrep -u sglang-ci -f 'npu_diffusion_ci_report\.py|reformat_report\.py|reanalyze_and_publish\.py' >/dev/null 2>&1; then
+if systemctl is-active --quiet npu-diffusion-ci.service ||
+   pgrep -u sglang-ci -f 'npu_diffusion_ci_report\.py|reformat_report\.py|reanalyze_and_publish\.py|recover_daily_report\.py|refresh_daily_snapshots\.py|reparse_failure_snapshots\.py|reconcile-legacy-issues\.py' >/dev/null 2>&1; then
   echo 'CI bot/report publication is active. Refusing to update files mid-run.' >&2; exit 1
 fi
 install -d -m 0700 -o root -g root "$STATE" "$STATE/backups"
 backup="$STATE/backups/$(date -u +%Y%m%dT%H%M%SZ)-$$.tar.gz"
 paths=()
-for p in home/sglang-npu-bot/scripts home/sglang-npu-bot/tests home/sglang-npu-bot/skills home/sglang-npu-bot/deploy \
+for p in home/sglang-npu-bot/VERSION home/sglang-npu-bot/scripts home/sglang-npu-bot/tests home/sglang-npu-bot/skills home/sglang-npu-bot/deploy \
   etc/systemd/system/npu-diffusion-ci.service etc/systemd/system/npu-diffusion-ci.timer; do
   [[ -e "/$p" ]] && paths+=("$p")
 done
@@ -149,5 +140,5 @@ if (( DEFER_TIMER )); then
 else
   restore_timer
 fi
-printf 'Installed release: %s (%s)\n' "$(git -C "$SRC" describe --tags --always)" "$NEXT"
+printf 'Installed release: %s (%s)\n' "$(cat "$BOT_HOME/VERSION")" "$NEXT"
 echo 'Saved previous revision for --rollback; previous bot.env and reports were preserved.'
