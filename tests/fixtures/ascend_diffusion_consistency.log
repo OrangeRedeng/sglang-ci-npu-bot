@@ -1,0 +1,12 @@
+2026-10-20T14:56:54.1496261Z ERROR: pip's dependency resolver does not currently take into account all the packages that are installed.
+2026-10-20T15:21:03.6495289Z =========================== short test summary info ============================
+2026-10-20T15:21:03.6496004Z FAILED sglang/multimodal_gen/test/server/ascend/test_server_2_npu.py::TestDiffusionServerTwoNpu::test_diffusion_generation[qwen_image_t2i_2npu] - Failed: [request 1/1] Diffusion testcase 'qwen_image_t2i_2npu' failed 1 check(s):
+2026-10-20T15:21:03.6496701Z [consistency]
+2026-10-20T15:21:03.6497017Z Consistency check failed for qwen_image_t2i_2npu:
+2026-10-20T15:21:03.6497340Z   Metrics: sim=0.9984, ssim=0.9371, psnr=23.6472, mean_abs_diff=3.7006
+2026-10-20T15:21:03.6497686Z   Thresholds: clip>=0.92, ssim>=0.95, psnr>=28.0, mean_abs_diff<=8.0
+2026-10-20T15:21:03.6497983Z   Failed frames:
+2026-10-20T15:21:03.6498249Z     - f0 [ssim, psnr] clip=0.9984 ssim=0.9371 psnr=23.6472 mean_abs_diff=3.7006
+2026-10-20T15:21:03.6498541Z   Compared GT files and links:
+2026-10-20T15:21:03.6499348Z     - qwen_image_t2i_2npu_2gpu.jpg: https://raw.githubusercontent.com/sgl-project/ci-data-diffusion/abc123/consistency_gt.jpg
+2026-10-20T15:21:13.0686143Z ##[error]Process completed with exit code 1.

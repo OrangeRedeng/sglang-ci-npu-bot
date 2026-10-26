@@ -1,0 +1,13 @@
+{
+  "source_repository": "OrangeRedeng/sglang-ascend-agent-workflow-kit",
+  "source_commit": "7e321feb72d90b1326ec456a7a34c05ed26b3456",
+  "skills": {
+    "sglang-regression": "56cb287fd15267495aca05b32000fb48dd288bb3d1271005f8e8c40efd88b2e1",
+    "ascend-regression": "ce9088a2cbb3b6fd08561f2609249a0fc65ac0467c9153a020e400a6e5e64f19",
+    "ascend-log-analysis": "2b96e1f5cce274fbd95095274c1cfdda2bd653d6b49658bee0299e84401a1dc9",
+    "sglang-ascend": "9b449ffd40e4ad12cc211a9f33e0a1f7a4a281b3566351ed4e5345cff348285a",
+    "ascend-kernel-debug": "520889de2f10acecf67c62306bdf67b01344d9b71ed1e787b83d9937108394bb",
+    "sglang-pr-review": "02f559dbdfea81f32e5d47a1039c5d4dd7df1d317ada7f731ed8193aba0843a4",
+    "sglang-benchmark-analysis": "eb57bc2c351a4b6c9ea6a0b1ae818dd512b66964b0399f76eb615b098e9127c8"
+  }
+}

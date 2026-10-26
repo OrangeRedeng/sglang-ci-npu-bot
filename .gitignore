@@ -1,0 +1,23 @@
+# Keep credentials, local reports, generated state and raw CI logs out of Git.
+.env
+.env.*
+!.env.example
+bot.env
+**/bot.env
+*.secret
+reports/
+*.sqlite3
+*.sqlite3-*
+*.db
+*.log
+*.log.part
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+venv/
+.venv/
+build/
+dist/
+.DS_Store
+!tests/fixtures/*.log

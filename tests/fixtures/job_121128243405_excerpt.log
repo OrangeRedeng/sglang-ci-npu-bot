@@ -1,0 +1,49 @@
+# Exact excerpts from sgl-project/sglang job 121128243405; intervening lines omitted.
+2026-10-25T09:20:01.1490217Z sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[flux_image_t2i_npu] [CONFTEST] Evicting stale model page cache before sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[flux_image_t2i_npu] (keep: ['FLUX.1-dev'])
+2026-10-25T09:21:45.3868188Z --- Performance Log: flux_image_t2i_npu ---
+2026-10-25T09:21:45.3869340Z   e2e=18318.45ms, load=81670.69ms, load_inclusive_e2e=99989.14ms, avg_denoise=365.15ms, median_denoise=383.69ms, load_peak_vram=0MiB, runtime_peak_vram=0MiB, load_peak_alloc=0MiB, runtime_peak_alloc=0MiB
+2026-10-25T09:21:45.3871256Z   baseline: e2e=20864.25ms, avg_denoise=400.64ms, median_denoise=414.97ms
+2026-10-25T09:21:45.3872238Z   stages: InputValidationStage=0.05ms, TextEncodingStage=9.38ms, LatentPreparationStage=0.28ms, TimestepPreparationStage=5.29ms, DenoisingStage=18263.82ms, DecodingStage=32.09ms
+2026-10-25T09:21:53.6542225Z [Consistency Check] flux_image_t2i_npu: PASSED
+2026-10-25T09:21:53.6542653Z   Thresholds: clip>=0.92, ssim>=0.95, psnr>=28.0, mean_abs_diff<=8.0
+2026-10-25T09:21:53.6543172Z   Min similarity: 0.9991
+2026-10-25T09:21:53.6543424Z   Min SSIM: 0.9827
+2026-10-25T09:21:53.6543646Z   Min PSNR: 35.2313
+2026-10-25T09:21:53.6543918Z   Max mean_abs_diff: 1.5054
+2026-10-25T09:21:53.6544160Z   Frame details:
+2026-10-25T09:21:53.6544474Z     Frame 0: clip=0.9991 ssim=0.9827 psnr=35.2313 mean_abs_diff=1.5054 PASS
+2026-10-25T09:21:53.6546814Z [server-test] PASSED diffusion testcase: flux_image_t2i_npu
+2026-10-25T09:22:11.9070108Z sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[wan2_1_t2v_1.3b_1_npu] [CONFTEST] Evicting stale model page cache before sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[wan2_1_t2v_1.3b_1_npu] (keep: ['Wan2___1-T2V-1___3B-Diffusers'])
+2026-10-25T09:22:51.5952252Z   File "/__w/sglang/sglang/python/sglang/kernels/ops/diffusion/rope/rmsnorm_interleaved_rope_cutedsl.py", line 11, in <module>
+2026-10-25T09:22:51.5952901Z     import cuda.bindings.driver as cuda
+2026-10-25T09:22:51.5953352Z ModuleNotFoundError: No module named 'cuda'
+2026-10-25T09:23:57.2825081Z --- Performance Log: wan2_1_t2v_1.3b_1_npu ---
+2026-10-25T09:23:57.2826005Z   e2e=57089.18ms, load=42647.11ms, load_inclusive_e2e=99736.29ms, avg_denoise=1118.42ms, median_denoise=1140.55ms, load_peak_vram=0MiB, runtime_peak_vram=0MiB, load_peak_alloc=0MiB, runtime_peak_alloc=0MiB
+2026-10-25T09:23:57.2827555Z   baseline: e2e=28194.51ms, avg_denoise=503.81ms, median_denoise=519.54ms
+2026-10-25T09:23:57.2828539Z   stages: InputValidationStage=0.06ms, TextEncodingStage=4.26ms, LatentPreparationStage=0.22ms, TimestepPreparationStage=2.03ms, DenoisingStage=55925.12ms, DecodingStage=1150.07ms
+2026-10-25T09:23:57.2831252Z   denoise_steps: 0=124.86ms, 1=1076.10ms, 2=1143.51ms, 3=1137.42ms, 4=1140.45ms, 5=1137.68ms, 6=1143.14ms, 7=1138.33ms, 8=1137.10ms, 9=1140.97ms, 10=1140.91ms, 11=1140.49ms, 12=1137.76ms, 13=1141.07ms, 14=1142.87ms, 15=1138.45ms, 16=1136.97ms, 17=1140.93ms, 18=1140.74ms, 19=1141.16ms, 20=1140.76ms, 21=1140.88ms, 22=1142.85ms, 23=1135.01ms, 24=1140.84ms, 25=1141.02ms, 26=1140.50ms, 27=1137.84ms, 28=1141.10ms, 29=1140.52ms, 30=1142.91ms, 31=1135.30ms, 32=1140.98ms, 33=1140.57ms, 34=1141.22ms, 35=1140.74ms, 36=1141.33ms, 37=1140.50ms, 38=1139.29ms, 39=1138.80ms, 40=1141.31ms, 41=1140.52ms, 42=1137.71ms, 43=1141.30ms, 44=1140.68ms, 45=1140.51ms, 46=1139.46ms, 47=1138.68ms, 48=1140.88ms, 49=1136.01ms
+2026-10-25T09:23:57.2835836Z [server-test] FAILED diffusion testcase: wan2_1_t2v_1.3b_1_npu
+2026-10-25T09:24:20.7824239Z sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[joyai_image_edit_ti2i_1npu] [CONFTEST] Evicting stale model page cache before sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[joyai_image_edit_ti2i_1npu] (keep: ['JoyAI-Image-Edit-Diffusers'])
+2026-10-25T09:24:54.0082231Z   File "/__w/sglang/sglang/python/sglang/kernels/ops/diffusion/rope/rmsnorm_interleaved_rope_cutedsl.py", line 11, in <module>
+2026-10-25T09:24:54.0082898Z     import cuda.bindings.driver as cuda
+2026-10-25T09:24:54.0083401Z ModuleNotFoundError: No module named 'cuda'
+2026-10-25T09:25:09.8772426Z ERROR
+2026-10-25T09:25:09.8950350Z __ TestDiffusionServerOneNpu.test_diffusion_generation[wan2_1_t2v_1.3b_1_npu] __
+2026-10-25T09:25:09.8950964Z sglang/multimodal_gen/test/server/test_server_common.py:1845: in run_case_check
+2026-10-25T09:25:09.8951416Z     fn()
+2026-10-25T09:25:09.8951756Z sglang/multimodal_gen/test/server/test_server_common.py:1869: in <lambda>
+2026-10-25T09:25:09.8952206Z     lambda: self._validate_and_record(
+2026-10-25T09:25:09.8952678Z sglang/multimodal_gen/test/server/test_server_common.py:471: in _validate_and_record
+2026-10-25T09:25:09.8953162Z     validator.validate_e2e(summary)
+2026-10-25T09:25:09.8953589Z sglang/multimodal_gen/test/server/test_server_utils.py:768: in validate_e2e
+2026-10-25T09:25:09.8954019Z     self._assert_le(
+2026-10-25T09:25:09.8954383Z sglang/multimodal_gen/test/server/test_server_utils.py:597: in _assert_le
+2026-10-25T09:25:09.8954826Z     assert actual <= upper_bound, (
+2026-10-25T09:25:09.8955174Z E   AssertionError: Validation failed for 'E2E Latency'.
+2026-10-25T09:25:09.8955538Z E       Actual:   57089.1776ms
+2026-10-25T09:25:09.8955813Z E       Expected: 28194.5100ms
+2026-10-25T09:25:09.8956149Z E       Limit:    35243.1375ms (rel_tol: 25.0%, abs_pad: 20.0ms)
+2026-10-25T09:25:09.8956521Z E   assert 57089.17764946818 <= 35243.1375
+2026-10-25T09:25:09.8956720Z 
+FAILED sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[wan2_1_t2v_1.3b_1_npu] - PerformanceValidationError: E2E latency
+FAILED sglang/multimodal_gen/test/server/ascend/test_server_1_npu.py::TestDiffusionServerOneNpu::test_diffusion_generation[joyai_image_edit_ti2i_1npu] - RuntimeError: Server exited early (code 1).
