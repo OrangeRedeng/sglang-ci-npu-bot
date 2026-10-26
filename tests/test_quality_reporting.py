@@ -227,4 +227,14 @@ class QualityTests(unittest.TestCase):
             validate_report(data,render_complete_report(data,[],'','disabled'))
 
 
+class WarningSummaryRegression(unittest.TestCase):
+    def test_warning_node_references_do_not_replace_pass_with_unknown(self):
+        text=(NODE+' [CONFTEST] start\n[server-test] PASSED diffusion testcase: wan\n'
+              '================ warnings summary ================\n'+NODE+'\n'
+              '================ short test summary info ================\n')
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'job.log';path.write_text(text)
+            observations,_=parse_observations(path)
+        self.assertEqual([(o['testcase'],o['status']) for o in observations],[('wan','PASS')])
+
 if __name__=='__main__':unittest.main()

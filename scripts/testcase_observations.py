@@ -22,6 +22,7 @@ def case_name(node):
 
 
 def parse_observations(path, limit=4096):
+    in_summary=False
     observations=[]; active=None; rows=[]; exceptions=[]; metrics={}; checks=[]; frames=[]
     performance=[]; overflow=0; unowned=[]; seen_measurements=set(); configuration=[]
 
@@ -61,13 +62,17 @@ def parse_observations(path, limit=4096):
     with path.open(encoding='utf-8-sig', errors='replace') as source:
         for lineno,raw in enumerate(source,1):
             line=GH_PREFIX.sub('',clean_line(raw)).strip()
-            if re.search(r'--suite\s|SGLANG_(?:CONSISTENCY_GT_DIR|TEST_FILES_CI_DATA_REVISION)|coverage_mode[=:]|(?:CANN|torch_npu|torch-npu|triton-ascend).*version',line,re.I):
+            if re.search(r'--(?:suite|partition-id)\s|SGLANG_(?:CONSISTENCY_GT_DIR|TEST_FILES_CI_DATA_REVISION)|coverage_mode[=:]|(?:CANN|torch_npu|torch-npu|triton-ascend).*version',line,re.I):
                 if len(configuration)<64:configuration.append({'line':lineno,'text':line})
+            if re.match(r'^=+\s+test session starts',line,re.I):in_summary=False
+            elif re.match(r'^=+\s+(?:FAILURES|ERRORS|warnings summary|short test summary)',line,re.I):
+                in_summary=True
             node=NODE.match(line)
             # Traceback/summary references must never reopen an execution.
             if node and not re.search(r' in |:\d+:',line):
                 rest=line[node.end():].strip()
-                if not rest or rest.startswith(('[CONFTEST]', 'PASSED','FAILED','SKIPPED','ERROR')):
+                if (not in_summary or rest.startswith('[CONFTEST]')) and (not rest or rest.startswith(('[CONFTEST]', 'PASSED','FAILED','SKIPPED','ERROR'))):
+                    in_summary=False
                     begin(node['node'],lineno)
                     verdict=re.match(r'(PASSED|FAILED|SKIPPED|ERROR)\b',rest)
                     if verdict:finish({'PASSED':'PASS','FAILED':'FAIL','ERROR':'FAIL','SKIPPED':'SKIP'}[verdict[1]],lineno)

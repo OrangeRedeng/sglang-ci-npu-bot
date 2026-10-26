@@ -412,6 +412,15 @@ def snapshot(gh: GitHub, now: datetime, hours: int, max_runs: int, max_logs: int
                 consecutive_transport_errors = 0
                 coverage.append(f"Run {run['id']}: job list unavailable ({str(exc)[:120]})")
                 progress(f"WARNING: {workflow} run {run['id']}: {str(exc)[:160]}")
+            gates=[]
+            for gate in jobs:
+                if re.search(r'(?:^| / )pr-gate$',gate.get('name','')):
+                    state={k:gate.get(k) for k in ('name','status','conclusion')}
+                    if gate.get('started_at') and parse_timestamp(gate['started_at'])>now:
+                        state.update(status='queued',conclusion=None)
+                    elif gate.get('completed_at') and parse_timestamp(gate['completed_at'])>now:
+                        state.update(status='in_progress',conclusion=None)
+                    gates.append(state)
             for job in jobs:
                 if not job_matches(job, workflow):
                     continue
@@ -437,7 +446,7 @@ def snapshot(gh: GitHub, now: datetime, hours: int, max_runs: int, max_logs: int
                     "run_id": run["id"], "attempt": run.get("run_attempt", 1),
                     "workflow": workflow, "job_id": job["id"], "name": job.get("name", ""),
                     "conclusion": conclusion, "run_conclusion": run_conclusion,
-                    "status":status, "test_steps":test_steps, "comparison_only":is_comparison,
+                    "status":status, "test_steps":test_steps, "gate_jobs":gates, "comparison_only":is_comparison,
                     "evidence_after_snapshot":after_snapshot,
                     "url": job.get("html_url") or f"https://github.com/{SOURCE_REPO}/actions/runs/{run['id']}",
                     "run_url": run.get("html_url"), "created_at": run.get("created_at"),

@@ -121,7 +121,8 @@ class EvidenceTests(unittest.TestCase):
         data={'generated_utc':'2026-10-26T01:00:00Z','jobs':c['jobs'],'counts':{'failure':3},'coverage':[], 'glm_telemetry':[{'stage':'triage','status':'budget_rejected'}]}
         report=render_research_report(data,[c],'','disabled')
         self.assertIn('recurring PR-only families qualify',report)
-        self.assertIn('57.0 / 28.0 / unknown',report)
+        self.assertIn('actual 57.0s, baseline 28.0s, limit unknowns',report)
+        self.assertNotIn('## Performance evidence',report)
         self.assertIn('budget_rejected',report)
         self.assertNotIn('No main-specific cluster',report)
 

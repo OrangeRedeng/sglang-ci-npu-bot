@@ -56,7 +56,8 @@ make that repository the report destination.
 
 GLM is optional. To enable it, configure the API endpoint, model, key, prices,
 and spending limits in `bot.env`. Existing installations keep their configuration
-during updates. See the [configuration example](deploy/bot.env.example).
+during updates. See the [configuration example](deploy/bot.env.example) and
+[GLM model, token limits, and quota guide](docs/GLM_CONFIGURATION.md).
 
 Check collection before enabling the daily schedule:
 

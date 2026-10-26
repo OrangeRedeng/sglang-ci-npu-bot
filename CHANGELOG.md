@@ -1,5 +1,14 @@
 # Changelog
 
+## 22.2.4
+
+- Put main partition results first, with readable model names and status icons.
+- Shorten the Issue view, fold detailed diagnostics, and chart seven-day history.
+- Count unique testcase outcomes without treating warnings-summary references
+  as new executions; retain gate status separately from test-step outcomes.
+- Document switching to GLM-5.3, output limits, and provider/local quotas.
+
+
 ## 22.2.3
 
 - Fix temporary installer tests when run from the deployed bot directory.
